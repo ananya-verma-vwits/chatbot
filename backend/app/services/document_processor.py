@@ -19,7 +19,8 @@ class DocumentProcessor:
         if not openai_api_key:
             raise ValueError("Did not find OPENAI_API_KEY. Please set it in the environment or .env file.")
         
-        self.embeddings = OpenAIEmbeddings(openai_api_key=openai_api_key)
+        # OpenAIEmbeddings reads the API key from the OPENAI_API_KEY environment variable
+        self.embeddings = OpenAIEmbeddings()
         self.vector_store = None
 
     def process_document(self, file_path: str) -> None:

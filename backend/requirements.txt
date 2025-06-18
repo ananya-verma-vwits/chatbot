@@ -8,6 +8,12 @@ spacy
 pydantic
 requests
 psutil
-en-core-web-md
+# en-core-web-md
 faiss-cpu
 langchain
+langchain-openai
+langchain-community
+python-docx
+faiss-cpu
+transformers
+torch

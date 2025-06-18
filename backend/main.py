@@ -11,7 +11,13 @@ import os
 import shutil
 from PyPDF2 import PdfReader
 import docx
+import torch
+torch.set_default_device("cpu")
+print(f"Default device: {torch.device('cpu')}")
+print(f"Is MPS available: {torch.backends.mps.is_available()}")
 from transformers import pipeline
+
+
 
 app = FastAPI()
 
@@ -39,7 +45,7 @@ FILES_DIR = "files"
 os.makedirs(FILES_DIR, exist_ok=True)
 
 # Load a question-answering model
-qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
+qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad", device=-1)
 
 def process_documents(texts):
     global document_store, embeddings_store
@@ -147,3 +153,7 @@ async def answer_question(question: str):
     # Use NLP model to find the answer
     result = qa_pipeline(question=question, context=combined_text)
     return {"question": question, "answer": result["answer"]}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
