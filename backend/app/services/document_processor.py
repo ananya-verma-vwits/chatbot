@@ -6,11 +6,8 @@ from typing import List, Optional
 from core.config import settings
 from dotenv import load_dotenv
 import os
-from transformers import pipeline
 
 load_dotenv()  # Load environment variables from .env file
-
-qa_pipeline = pipeline("question-answering", model="distilbert-base-cased-distilled-squad")
 
 class DocumentProcessor:
     def __init__(self):
