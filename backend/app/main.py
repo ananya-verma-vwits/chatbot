@@ -71,6 +71,12 @@ async def startup_event():
         print("Documents loaded successfully.")
     except Exception as e:
         print(f"Error during startup: {str(e)}")
+    print("Application is starting...")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    print("Application is shutting down...")
+
 if __name__ == "__main__":
     
     uvicorn.run(app, host="127.0.0.1", port=8000)

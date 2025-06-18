@@ -8,4 +8,6 @@ spacy
 pydantic
 requests
 psutil
-en-core-web-md 
+en-core-web-md
+faiss-cpu
+langchain
