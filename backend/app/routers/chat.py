@@ -1,8 +1,9 @@
+import os
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from services.embedding_service import document_store, embeddings_store
-from services.ollama_service import generate_response
-from sklearn.metrics.pairwise import cosine_similarity
+from services.embedding_service import process_documents
+from utils.generate_response import generate_response
+import numpy as np
 import spacy
 
 router = APIRouter()
@@ -11,27 +12,36 @@ nlp = spacy.load("en_core_web_md")
 class ChatRequest(BaseModel):
     query: str
 
+document_store = []
+embeddings_store = None
+
+FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "files")
+os.makedirs(FILES_DIR, exist_ok=True)
+
 @router.post("/")
 async def chat(request: ChatRequest):
-    """Endpoint to chat with the bot."""
-    if not request.query:
-        raise HTTPException(status_code=400, detail="The 'query' field is required.")
+    """Endpoint to ask a question based on uploaded documents."""
+    global document_store, embeddings_store
+    if not document_store or embeddings_store is None:
+        print("Document store or embeddings store is empty. Processing documents...")
+        document_store, embeddings_store = process_documents(FILES_DIR)
+
     try:
-        if not document_store or embeddings_store is None:
-            raise HTTPException(status_code=400, detail="No documents loaded")
-        
-        # Create embedding for the query using spaCy
-        query_embedding = nlp(request.query).vector.reshape(1, -1)
-        
-        # Calculate similarities
-        similarities = cosine_similarity(query_embedding, embeddings_store)[0]
-        
-        # Get top 3 most relevant documents
+        query_embedding = np.array(nlp(request.query).vector).reshape(1, -1)
+
+        similarities = np.dot(embeddings_store, query_embedding.T).flatten()
+
         top_indices = np.argsort(similarities)[-3:][::-1]
-        context = "\n".join([document_store[i] for i in top_indices])
-        
-        # Get response from Ollama
-        response = generate_response(request.query, context=context)
+
+        # Generate Markdown content for the top documents
+        markdown_content = "# Relevant Documents\n\n"
+        for i in top_indices:
+            markdown_content += f"## Document {i + 1}\n\n"
+            markdown_content += document_store[i] + "\n\n"
+
+        print(f"Markdown Content passed to Ollama: {markdown_content[:200]}")  # Debugging log
+
+        response = generate_response(query=request.query, markdown_content=markdown_content)
         return {"response": response}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

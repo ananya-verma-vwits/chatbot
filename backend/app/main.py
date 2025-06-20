@@ -1,6 +1,8 @@
+import os
+import shutil
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import upload, ask, chat
+from routers import upload, chat
 from services.ollama_service import start_ollama_server, stop_ollama_server
 from dotenv import load_dotenv
 load_dotenv()
@@ -29,10 +31,11 @@ async def startup_event():
 async def shutdown_event():
     """Stop the Ollama server on application shutdown."""
     stop_ollama_server()
+    if os.path.exists(upload.FILES_DIR):
+        shutil.rmtree(upload.FILES_DIR)
 
 # Include routers
 app.include_router(upload.router, prefix="/upload", tags=["Upload"])
-app.include_router(ask.router, prefix="/ask", tags=["Ask"])
 app.include_router(chat.router, prefix="/chat", tags=["Chat"])
 
 if __name__ == "__main__":

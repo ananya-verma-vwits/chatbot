@@ -18,3 +18,5 @@ faiss-cpu
 transformers
 torch
 sentence-transformers
+PyMuPDF
+camelot-py
