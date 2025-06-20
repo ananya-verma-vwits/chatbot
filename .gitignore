@@ -57,6 +57,7 @@ Thumbs.db
 backend/file/
 uploads/
 docs/
+files
 *.pdf
 
 # Environment files
