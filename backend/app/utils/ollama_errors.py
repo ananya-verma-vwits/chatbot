@@ -1,10 +1,13 @@
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+import psutil
+import socket
 class OllamaConnectionError(Exception):
     pass
 
 def check_ollama_health():
-    import requests
-    import psutil
-    import socket
     
     def is_port_in_use(port):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -21,8 +24,13 @@ def check_ollama_health():
                 "1. Stop any other applications using port 11434\n"
                 "2. Restart Ollama with: ollama serve"
             )
-        
-        response = requests.get("http://localhost:11434/api/health")
+        # Use requests.Session with retry logic
+        session = requests.Session()
+        retry = Retry(connect=5, backoff_factor=0.5)
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount("https://", adapter)
+
+        response = session.get("http://localhost:11434/api/health")
         return response.status_code == 200
     except requests.ConnectionError:
         raise OllamaConnectionError(
