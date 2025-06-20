@@ -5,7 +5,12 @@ from services.ollama_service import start_ollama_server, stop_ollama_server
 from dotenv import load_dotenv
 load_dotenv()
 
-app = FastAPI()
+app = FastAPI(
+    title="AVA Chatbot APIs",
+    description="APIs for AVA Chatbot, including file upload, question answering, and chat functionalities.",
+    version="1.0.0",
+    root_path="/api", 
+)
 
 app.add_middleware(
     CORSMiddleware,
