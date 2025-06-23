@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 import os
 from langchain.schema import Document
 from langchain.embeddings import HuggingFaceEmbeddings
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 load_dotenv()
@@ -31,9 +34,20 @@ class DocumentProcessor:
         texts = self.text_splitter.split_documents(documents)
         
         if not self.vector_store:
+            logging.info("Creating vector store for the first time.")
             self.vector_store = FAISS.from_documents(texts, self.embeddings)
+            logging.info(f"Adding {len(texts)} new documents to the vector store.")
         else:
-            self.vector_store.add_documents(texts)
+            # Check if the documents are already in the vector store
+            logging.info("Checking for duplicate documents in the vector store.")
+            existing_docs = [doc.page_content for doc in self.vector_store.similarity_search("", k=len(self.vector_store.index_to_docstore_id))]
+            new_texts = [text for text in texts if text.page_content not in existing_docs]
+            
+            if new_texts:
+                logging.info(f"Adding {len(new_texts)} new documents to the vector store.")
+                self.vector_store.add_documents(new_texts)
+            else:
+                logging.info("No new documents to add.")
 
 
     def query_documents(self, query: str, k: int = 4) -> List[str]:
@@ -51,3 +65,5 @@ class DocumentProcessor:
             self.vector_store = FAISS.from_documents(documents, self.embeddings)
         else:
             self.vector_store.add_documents(documents)
+
+document_processor = DocumentProcessor()

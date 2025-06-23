@@ -1,4 +1,7 @@
+import base64
+import json
 import os
+import re
 from fastapi import UploadFile, HTTPException
 from PyPDF2 import PdfReader
 import docx
@@ -52,7 +55,8 @@ def extract_images_from_pdf(file_path: str) -> list:
                 xref = img[0]
                 base_image = pdf_document.extract_image(xref)
                 image_bytes = base_image["image"]
-                images.append(image_bytes)
+                image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+                images.append(image_base64)
         return images
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error extracting images: {str(e)}")
@@ -100,3 +104,16 @@ def process_pdf_to_markdown(file_path: str) -> str:
         markdown_content += f"![Image {i + 1}](image_{i + 1}.png)\n\n"
 
     return markdown_content
+
+
+def pdf_to_structured_json(file_path: str, output_path: str = None) -> dict:
+    context = process_pdf(file_path)
+    context['tables'] = [table.to_dict(orient="records") for table in context['tables']]
+
+    if output_path:
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(context, f, indent=2)
+        print(f"Structured JSON saved at: {output_path}")
+
+    return context
