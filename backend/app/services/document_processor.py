@@ -2,11 +2,12 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader  # Updated imports
 from langchain.vectorstores import FAISS  # Use FAISS instead of Chroma
 from typing import List
+
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from core.config import settings
 from dotenv import load_dotenv
 import os
 from langchain.schema import Document
-from langchain.embeddings import HuggingFaceEmbeddings
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +21,7 @@ class DocumentProcessor:
             chunk_size=settings.CHUNK_SIZE,
             chunk_overlap=settings.CHUNK_OVERLAP,
         )
-        self.embeddings = HuggingFaceEmbeddings()
+        self.embeddings = HuggingFaceEmbeddings(model_name="thenlper/gte-large")
         self.vector_store = None
 
 

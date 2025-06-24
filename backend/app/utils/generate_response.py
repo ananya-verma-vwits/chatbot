@@ -12,7 +12,7 @@ def generate_response(query, markdown_content: str):
             return "No relevant information available in the uploaded documents."
 
         # Explicitly instruct the LLM to answer only based on the provided context
-        prompt = f"""You are a helpful assistant. Answer the question using the following document content.
+        prompt = f"""You are a helpful assistant. Answer the question strictly using the following document content. Do not use any external knowledge or assumptions.
 
                     ---DOCUMENT---
                     {markdown_content}
@@ -20,10 +20,9 @@ def generate_response(query, markdown_content: str):
                     ---QUESTION---
                     {query}
                     """
-        #                     Context:
-        # {markdown_content}
-        # Question: {query}
-        # Answer:"""
+
+        print(f"Markdown Content: {markdown_content[:500]}")  # Print the first 500 characters
+
 
         response = requests.post(
             OLLAMA_URL,

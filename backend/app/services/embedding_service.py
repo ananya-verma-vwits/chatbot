@@ -1,11 +1,11 @@
 import json
-import spacy
+from sentence_transformers import SentenceTransformer
 import os
 import numpy as np
 from utils.file_utils import process_pdf_to_markdown
 
-# Load spaCy model
-nlp = spacy.load("en_core_web_md")
+# Load SentenceTransformer model
+model = SentenceTransformer("thenlper/gte-large")
 
 # Initialize document store and embeddings store
 document_store = []
@@ -25,21 +25,11 @@ def process_documents(files_dir: str):
         if file_name.endswith(".pdf"):  # Example for PDF files
             context = process_pdf_to_markdown(file_path)
 
-            # # Combine text, tables, and text from images into a single string
-            # combined_text = context['text']
-
-            # # Add tables to the combined text
-            # for table in context['tables']:
-            #     # Convert table (list of dictionaries) into Markdown-like format
-            #     table_lines = [" | ".join(map(str, row.values())) for row in table]
-            #     combined_text += "\n" + "\n".join(table_lines)
-
-            # # Add placeholder for image text (if OCR is implemented later)
-            # combined_text += "\n[Images extracted, OCR processing required]"
+            embedding = model.encode(context, convert_to_numpy=True)
 
             document_store.append(context)
 
-            embeddings_store.append(nlp(context).vector)
+            embeddings_store.append(embedding)
 
     # Convert embeddings to a NumPy array
     embeddings_store = np.array(embeddings_store)
